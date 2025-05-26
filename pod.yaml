@@ -8,3 +8,20 @@ spec:
       image: nginx:latest
       ports:
         - containerPort: 80
+
+
+
+
+Before this 
+minicube version
+minicube start --driver=docker
+minicube status
+kubectl get nodes
+
+
+in vs terminal:
+kubectl apply -f pod.yaml
+kubectl get pods
+kubectl get pods -o wide
+minikube ssh
+curl <nginx ip-address>
