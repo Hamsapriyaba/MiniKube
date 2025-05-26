@@ -1,0 +1,98 @@
+#####app1.py
+from flask import Flask
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    app_env = os.getenv("APP_ENV", "not set")
+    db_password = os.getenv("DB_PASSWORD", "not set")
+    return f"APP_ENV: {app_env} <br> DB_PASSWORD: {db_password}"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+###Dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+COPY app1.py .
+RUN pip install flask
+CMD ["python", "app1.py"]
+
+####deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-app
+  template:
+    metadata:
+      labels:
+        app: python-app
+    spec:
+      containers:
+        - name: app-container
+          image: hamsapriyaba/python-app:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: my-config
+                  key: APP_ENV
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: DB_PASSWORD
+
+
+###ConfigMap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  APP_ENV: production
+
+
+####Secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+type: Opaque
+stringData:
+  DB_PASSWORD: mypassword123
+
+
+docker built -t python-app .
+docker built -t hamsapriyaba/python-app:latest
+
+kubectl apply -f configmap.yaml
+kubectl apply -f secret.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+
+kubectl get pods
+kubectl get svc
+
+kubectl port-forward svc/python-service 8095:80
+http://localhost:8095
+
+
+
+kubectl delete pods --all
+
+kubectl delete all --all
+
+kubectl delete deployment <deployment-name>/ kubectl delete deployments --all
+
+
+
